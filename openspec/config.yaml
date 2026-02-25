@@ -1,0 +1,94 @@
+schema: spec-driven
+
+context: |
+  ## Project: tbt-ratio-controller Helm Chart
+
+  **Type:** Helm Chart (Kubernetes application package)
+  **Version:** Follows application version (currently 1.6.0)
+  **Target Cluster:** Kubernetes (GKE - Turing Pi homelab)
+
+  ### Purpose
+  This Helm chart packages and deploys the tbt-ratio-controller application to Kubernetes.
+  The application is a cron-based service that manages torrent files between Transmission
+  BitTorrent client and RatioManager, with idle torrent detection and Rustatio integration.
+
+  ### Tech Stack
+  - Helm 3 for Kubernetes packaging
+  - Kubernetes (GKE) for orchestration
+  - ArgoCD for GitOps deployment (this repo is ARGOCD-OWNED)
+  - GitLab CI/CD with semantic-release (conventional commits)
+  - Pre-commit hooks: detect-secrets, gitleaks, helm lint, markdownlint
+  - Renovate for automated dependency updates
+  - Docker image: gitlab-registry-internal.spirit-dev.net/scripts/tbt-ratio-controller
+
+  ### Chart Structure
+  helm/
+  ├── Chart.yaml              # Chart metadata (apiVersion v2)
+  ├── values.yaml             # Default configuration values
+  ├── values.turingpi.yaml    # Environment-specific overrides (production)
+  └── templates/
+      ├── deployment.yaml     # Deployment with env vars, volumes, security context
+      ├── serviceaccount.yaml # Service account creation
+      └── registrykey.yaml    # Docker registry secret
+
+  ### Deployment Model
+  - **Namespace:** transmission
+  - **Replicas:** 1 (singleton service)
+  - **Priority Class:** web-frontend
+  - **Image Pull Policy:** IfNotPresent (default) / Always (production)
+  - **Security Context:** Runs as root (uid 0) in production for file operations
+  - **Volumes:** Two PVCs mounted - source-folder (transmission torrents), target-folder (output)
+
+  ### Configuration Management
+  - Environment variables with TRC_ prefix (matches application's viper config)
+  - values.yaml: Default values for generic deployments
+  - values.turingpi.yaml: Production overrides for Turing Pi cluster
+  - All env vars are templated in deployment.yaml
+  - Registry credentials injected via GitLab CI (masked variables)
+
+  ### CI/CD Pipeline
+  - GitLab CI with semantic-release for versioning
+  - Pipeline stages: validate, build, release
+  - Helm linting and validation on every commit
+  - Automated chart release on conventional commits
+  - Pre-commit hooks enforce code quality
+
+  ### ArgoCD Integration
+  - This repository is ARGOCD-OWNED - manual kubectl changes will be overridden
+  - ArgoCD syncs chart changes to production cluster
+  - Changes should go through GitLab → ArgoCD workflow
+
+  ### Conventions
+  - Conventional commits (feat:, fix:, chore:, etc.)
+  - All secrets use pragma: allowlist secret for detect-secrets
+  - Environment variable prefix: TRC_ (not JC_ - old prefix deprecated)
+  - Follow Helm best practices (Chart.yaml apiVersion v2, proper labels)
+  - No manual kubectl operations - use GitOps workflow
+
+  ### Application Integration
+  The Helm chart deploys the Go application with these key features:
+  - Cron-based torrent file management
+  - Transmission RPC integration for seeding status
+  - Prometheus Pushgateway metrics
+  - Rustatio API integration for torrent instance management
+  - Idle torrent detection with automatic faking actions
+  - Persistent tracking state via JSON file
+
+rules:
+  proposal:
+    - Always include a "Non-goals" section to keep scope focused
+    - Reference affected Helm templates explicitly (deployment.yaml, values.yaml)
+    - Consider impact on ArgoCD sync - changes will auto-deploy to production
+    - Address backward compatibility with existing values.yaml configuration
+    - Mention if the change requires PVC modifications or new storage
+    - Consider security implications - container runs as root in production
+    - Keep proposals concise - this is a packaging chart, not application code
+  tasks:
+    - Break tasks into chunks of max 2 hours of work
+    - Each task should specify which Helm files need modification
+    - Include helm template validation step (make dry-run ENV=turingpi)
+    - Reference the Makefile target to verify the change
+    - Specify if configuration changes (new env vars in values.yaml) are needed
+    - Consider impact on existing PVCs and data persistence
+    - For production changes, always test with values.turingpi.yaml first
+    - Mention if ArgoCD sync will be triggered automatically
