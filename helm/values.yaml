@@ -2,6 +2,19 @@ fullnameOverride: tbt-ratio-controller
 
 replicaCount: 1
 
+# Deployment strategy configuration
+strategy:
+  # -- Deployment strategy type: RollingUpdate or Recreate
+  # RollingUpdate: Gradually replaces old pods with new ones (zero downtime)
+  # Recreate: Terminates all old pods before creating new ones (causes downtime)
+  type: Recreate
+  # -- RollingUpdate strategy configuration (only used when type is RollingUpdate)
+  rollingUpdate:
+    # -- Maximum number of pods that can be created above the desired replica count
+    maxSurge: 25%
+    # -- Maximum number of pods that can be unavailable during the update
+    maxUnavailable: 25%
+
 annotations: {}
 
 additionalLabels: {}
