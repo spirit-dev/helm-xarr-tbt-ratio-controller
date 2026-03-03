@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: devops-shell
+  labels:
+    app: devops-shell
+spec:
+  restartPolicy: Never
+  # securityContext:
+  #   runAsUser: 1000
+  #   seccompProfile:
+  #     type: RuntimeDefault
+  volumes:
+    - name: joal-config
+      persistentVolumeClaim:
+        claimName: joal-config
+  containers:
+    - name: devops-shell
+      image: gitlab-registry-internal.spirit-dev.net/infrastructure/docker/alpine:3.21.2
+      imagePullPolicy: Always
+      command: ["sh", "-c", "sleep 1h"]
+      # securityContext:
+      #   capabilities:
+      #     drop:
+      #       - ALL
+      #   runAsNonRoot: true
+      #   allowPrivilegeEscalation: false
+      volumeMounts:
+        - mountPath: /code/target_folder
+          name: joal-config
+  imagePullSecrets:
+    - name: gitlab-registry-key

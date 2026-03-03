@@ -1,0 +1,19 @@
+apiVersion: v2
+name: tbt-ratio-controller
+description: TBT Ratio Controller for torrent automation with Rustatio integration
+home: https://gitlab-internal.spirit-dev.net/infrastructure/helm/xarr/tbt-ratio-controller
+sources:
+  - https://gitlab-internal.spirit-dev.net/infrastructure/helm/xarr/tbt-ratio-controller
+
+type: application
+
+# Note: This is a custom internal chart without external dependencies
+version: "1.0.0"
+
+# Note: This is a custom internal application
+appVersion: "1.0.0"
+
+keywords:
+  - torrent
+  - rustatio
+  - ratio-controller
