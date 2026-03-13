@@ -1,0 +1,253 @@
+fullnameOverride: tbt-ratio-controller
+
+replicaCount: 1
+
+# Deployment strategy configuration
+strategy:
+  # -- Deployment strategy type: RollingUpdate or Recreate
+  # RollingUpdate: Gradually replaces old pods with new ones (zero downtime)
+  # Recreate: Terminates all old pods before creating new ones (causes downtime)
+  type: Recreate
+  # -- RollingUpdate strategy configuration (only used when type is RollingUpdate)
+  rollingUpdate:
+    # -- Maximum number of pods that can be created above the desired replica count
+    maxSurge: 25%
+    # -- Maximum number of pods that can be unavailable during the update
+    maxUnavailable: 25%
+
+annotations: {}
+
+additionalLabels: {}
+  # lbl-key: lbl-value
+
+image:
+  repository: gitlab-registry-internal.spirit-dev.net/scripts/tbt-ratio-controller
+  tag: latest
+  pullPolicy: IfNotPresent
+  registry:
+    url:
+    username:
+    password:
+
+secrets:
+  rustatioAuthToken: ""
+
+env:
+  - name: TRC_APPNAME
+    value: tbt-ratio-controller
+  - name: TRC_VERSION
+    value: 1.7.0
+  # default mount point
+  - name: TRC_SOURCE_FOLDER
+    value: /code/source_folder/configs/transmission-home/torrents
+  # watching for .torrent files
+  - name: TRC_FILE_EXTENSION
+    value: torrent
+  # default mount point
+  - name: TRC_TARGET_FOLDER
+    value: /code/target_folder/torrents
+  # Used for logging json format output
+  - name: TRC_ENVIRONMENT
+    value: production
+  # Transmission protocol (http|https)
+  - name: TRC_TRANSMISSION_PROT
+    value: http
+  # Transmission host name. Equiv to the service name
+  - name: TRC_TRANSMISSION_HOST
+    value: transmission.transmission
+  # Transmission url. default: transmission/rpc
+  - name: TRC_TRANSMISSION_URL
+    value: transmission/rpc
+  # Transmission username
+  - name: TRC_TRANSMISSION_USER
+    value:
+  # Transmission password
+  - name: TRC_TRANSMISSION_PASS
+    value:
+  # CronJob schedule (default every 5 minutes)
+  - name: TRC_CRON_SCHEDULE
+    value: "*/5 * * * *"
+  # Define files expired after X weeks
+  - name: TRC_EXPIRES_AFTER_WEEKS
+    value: "8"
+  # Prometheus protocol (http|https)
+  - name: TRC_PROMETHEUS_PROT
+    value: http
+  # Prometheus host for pushgateway
+  - name: TRC_PROMETHEUS_HOST
+    value: prometheus-pushgateway.monitoring:9091
+  # Prometheus username
+  - name: TRC_PROMETHEUS_USER
+    value:
+  # Prometheus password
+  - name: TRC_PROMETHEUS_PASS
+    value:
+  # Rustatio protocol (http|https)
+  - name: TRC_RUSTATIO_PROT
+    value: http
+  # Rustatio host
+  - name: TRC_RUSTATIO_HOST
+    value: rustatio.default
+  # Rustatio port
+  - name: TRC_RUSTATIO_PORT
+    value: "8080"
+  # Rustatio API URL path
+  - name: TRC_RUSTATIO_URL
+    value: api
+  # Rustatio bearer token for authentication
+  - name: TRC_RUSTATIO_TOKEN
+    value:
+  # Rustatio config file path
+  - name: TRC_RUSTATIO_CONFIG_FILE
+    value: /code/config/rustatio-randomness.json
+  # Idle torrent detection: minimum delay before faking (hours)
+  - name: TRC_IDLE_DELAY_MIN_HOURS
+    value: "1"
+  # Idle torrent detection: maximum delay before faking (hours)
+  - name: TRC_IDLE_DELAY_MAX_HOURS
+    value: "36"
+  # Path to tracking state file
+  - name: TRC_TRACKING_FILE_PATH
+    value: /code/tracking.json
+  # How often to persist tracking data (minutes)
+  - name: TRC_TRACKING_PERSIST_INTERVAL
+    value: "5"
+  # How often to cleanup old tracking entries (hours)
+  - name: TRC_TRACKING_CLEANUP_INTERVAL
+    value: "24"
+  # Days to keep completed entries
+  - name: TRC_TRACKING_RETENTION_COMPLETED
+    value: "7"
+  # Days to keep failed entries
+  - name: TRC_TRACKING_RETENTION_FAILED
+    value: "30"
+  # Hours to prevent reprocessing same torrent
+  - name: TRC_TRACKING_DUPLICATE_WINDOW
+    value: "48"
+  # API endpoint template for starting faking
+  - name: TRC_RUSTATIO_START_FAKING_ENDPOINT
+    value: /api/v1/instances/{id}/start-faking
+  # Upload rate range minimum (KB/s)
+  - name: TRC_UPLOAD_RATE_MIN
+    value: "40"
+  # Upload rate range maximum (KB/s)
+  - name: TRC_UPLOAD_RATE_MAX
+    value: "80"
+  # Download rate range minimum (KB/s)
+  - name: TRC_DOWNLOAD_RATE_MIN
+    value: "80"
+  # Download rate range maximum (KB/s)
+  - name: TRC_DOWNLOAD_RATE_MAX
+    value: "180"
+  # Randomize rate range minimum
+  - name: TRC_RANDOMIZE_RATE_MIN
+    value: "1"
+  # Randomize rate range maximum
+  - name: TRC_RANDOMIZE_RATE_MAX
+    value: "50"
+  # Adjustment duration minimum (e.g., 30m, 2h)
+  - name: TRC_ADJUSTMENT_DURATION_MIN
+    value: 30m
+  # Adjustment duration maximum (e.g., 30m, 2h)
+  - name: TRC_ADJUSTMENT_DURATION_MAX
+    value: 2h
+  # Target ratio range minimum
+  - name: TRC_TARGET_RATIO_MIN
+    value: "1.0"
+  # Target ratio range maximum
+  - name: TRC_TARGET_RATIO_MAX
+    value: "1.7"
+  # Seed time range minimum (e.g., 5h, 24h)
+  - name: TRC_SEED_TIME_MIN
+    value: 5h
+  # Seed time range maximum (e.g., 5h, 24h)
+  - name: TRC_SEED_TIME_MAX
+    value: 24h
+  # Per-torrent Metrics Configuration
+  - name: TRC_METRICS_INCLUDE_PER_TORRENT
+    value: "true"
+  - name: TRC_METRICS_TORRENT_LABELS
+    value: info_hash,name
+
+volumes:
+  - name: source-folder
+    persistentVolumeClaim:
+      claimName: source-folder
+  - name: target-folder
+    persistentVolumeClaim:
+      claimName: target-folder
+  - name: rustatio-config
+    configMap:
+      name: tbt-ratio-controller-rustatio-config
+
+volumeMounts:
+  - name: source-folder
+    mountPath: "/code/source_folder"
+  - name: target-folder
+    mountPath: "/code/target_folder"
+  - name: rustatio-config
+    mountPath: "/code/config"
+    readOnly: true
+
+# Rustatio configuration for randomized torrent client parameters
+rustatioConfig:
+  version: "1.0.0"
+  type: "rustatio-randomness-config"
+  name: "Rustatio Randomization Configuration"
+  description: "Configuration for randomized torrent client parameters to create unique sessions"
+  icon: "shuffle"
+  createdAt: "2026-02-19T12:00:00Z"
+  settings:
+    selectedClient: "transmission"
+    selectedClientVersion: "4.0.5"
+    uploadRate: 60.0
+    downloadRate: 0.0
+    port: 51413
+    completionPercent: 100.0
+    randomizeRates: true
+    randomRangePercent: 25.0
+    updateIntervalSeconds: 30
+    scrapeInterval: 300
+    progressiveRatesEnabled: true
+    targetUploadRate: 80.0
+    targetDownloadRate: 0.0
+    progressiveDurationHours: 1
+    stopAtRatioEnabled: true
+    stopAtRatio: 1.5
+    stopAtSeedTimeEnabled: true
+    stopAtSeedTimeHours: 48
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# Security context for container
+securityContext: {}
+
+# Security context for pod
+# Can be used to allow ipv6 for openvpn, because
+# some VPN providers push an ipv6 route with will fail without
+# ipv6 support, see https://github.com/haugene/docker-transmission-openvpn/issues/789
+# Note that your kubelet needs to allow changing this sysctl setting, see
+# https://kubernetes.io/docs/tasks/administer-cluster/sysctl-cluster/#enabling-unsafe-sysctls
+#
+# - podSecurityContext:
+#     sysctls:
+#       - name: net.ipv6.conf.all.disable_ipv6
+#         value: "0"
+podSecurityContext: {}
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+priorityClassName: web-frontend
