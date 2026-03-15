@@ -168,6 +168,22 @@ env:
     value: "true"
   - name: TRC_METRICS_TORRENT_LABELS
     value: info_hash,name
+  # Circuit Breaker Configuration
+  - name: TRC_RUSTATIO_CIRCUIT_FAILURE_THRESHOLD
+    value: "2"
+  - name: TRC_RUSTATIO_CIRCUIT_OPEN_TIMEOUT_MINUTES
+    value: "15"
+  # Trigger Verification Configuration
+  - name: TRC_RUSTATIO_VERIFICATION_DELAY_SECONDS
+    value: "30"
+  - name: TRC_RUSTATIO_VERIFICATION_JITTER_SECONDS
+    value: "5"
+  # Retry System Configuration
+  - name: TRC_RUSTATIO_MAX_RETRIES
+    value: "3"
+  # State Reconciliation Configuration
+  - name: TRC_RUSTATIO_RECONCILIATION_MISMATCH_THRESHOLD
+    value: "96"
 
 volumes:
   - name: source-folder
