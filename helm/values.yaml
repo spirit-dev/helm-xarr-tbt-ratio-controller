@@ -180,3 +180,22 @@ tolerations: []
 affinity: {}
 
 priorityClassName: web-frontend
+
+# Metrics configuration for Prometheus scraping
+metrics:
+  # Port for the metrics HTTP server
+  port: 8080
+  # ServiceMonitor configuration for Prometheus Operator
+  serviceMonitor:
+    # Enable ServiceMonitor creation
+    enabled: false
+    # Scrape interval
+    interval: 30s
+    # Additional labels for the ServiceMonitor
+    labels: {}
+    # Scrape timeout
+    scrapeTimeout: 10s
+    # Metric relabelings (optional)
+    metricRelabelings: []
+    # Relabelings (optional)
+    relabelings: []
