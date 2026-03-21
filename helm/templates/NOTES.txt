@@ -1,0 +1,36 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+{{- if .Values.metrics.serviceMonitor.enabled }}
+
+Prometheus Metrics
+------------------
+The application exposes Prometheus metrics on port {{ .Values.metrics.port }}.
+
+A ServiceMonitor has been created for Prometheus Operator auto-discovery.
+Metrics are available at: http://{{ include "tbt-ratio-controller.fullname" . }}:{{ .Values.metrics.port }}/metrics
+
+Health endpoints:
+- Liveness:  http://{{ include "tbt-ratio-controller.fullname" . }}:{{ .Values.metrics.port }}/health
+- Readiness: http://{{ include "tbt-ratio-controller.fullname" . }}:{{ .Values.metrics.port }}/ready
+{{- else }}
+
+Prometheus Metrics
+------------------
+The application exposes Prometheus metrics on port {{ .Values.metrics.port }}.
+
+To enable Prometheus Operator auto-discovery, set:
+  metrics.serviceMonitor.enabled=true
+
+Metrics are available at: http://{{ include "tbt-ratio-controller.fullname" . }}:{{ .Values.metrics.port }}/metrics
+
+Health endpoints:
+- Liveness:  http://{{ include "tbt-ratio-controller.fullname" . }}:{{ .Values.metrics.port }}/health
+- Readiness: http://{{ include "tbt-ratio-controller.fullname" . }}:{{ .Values.metrics.port }}/ready
+{{- end }}
